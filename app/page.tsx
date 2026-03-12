@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 
 const QUESTIONS = [
   {
     id: 1,
     type: "most",
+    traitBucket: "compassion",
     prompt: "Which statement feels MOST like you?",
     options: {
       A: { text: "I often notice when someone might need help before they say anything", trait: "compassion" },
@@ -18,6 +19,7 @@ const QUESTIONS = [
   {
     id: 2,
     type: "most",
+    traitBucket: "proactivity",
     prompt: "Which statement feels MOST natural to you?",
     options: {
       A: { text: "I try to anticipate needs before someone asks", trait: "proactivity" },
@@ -29,6 +31,7 @@ const QUESTIONS = [
   {
     id: 3,
     type: "most",
+    traitBucket: "compassion",
     prompt: "Which approach best reflects how you usually work?",
     options: {
       A: { text: "I pay attention to how people around me are feeling", trait: "compassion" },
@@ -40,6 +43,7 @@ const QUESTIONS = [
   {
     id: 4,
     type: "most",
+    traitBucket: "social",
     prompt: "When entering a new environment, which feels most natural?",
     options: {
       A: { text: "I look for ways to make people feel comfortable", trait: "compassion" },
@@ -51,6 +55,7 @@ const QUESTIONS = [
   {
     id: 5,
     type: "most",
+    traitBucket: "regulation",
     prompt: "In busy environments, what helps you perform best?",
     options: {
       A: { text: "Noticing when people might need support", trait: "compassion" },
@@ -62,6 +67,7 @@ const QUESTIONS = [
   {
     id: 6,
     type: "most",
+    traitBucket: "reliability",
     prompt: "Which statement best reflects your natural tendency?",
     options: {
       A: { text: "I like helping people feel cared for", trait: "compassion" },
@@ -73,6 +79,7 @@ const QUESTIONS = [
   {
     id: 7,
     type: "least",
+    traitBucket: "reliability",
     prompt: "Which statement feels LEAST like you?",
     options: {
       A: { text: "I prefer environments where responsibilities are clearly defined", trait: "reliability" },
@@ -84,6 +91,7 @@ const QUESTIONS = [
   {
     id: 8,
     type: "most",
+    traitBucket: "compassion",
     prompt: "Which description fits you best?",
     options: {
       A: { text: "I often notice emotional cues from people", trait: "compassion" },
@@ -95,6 +103,7 @@ const QUESTIONS = [
   {
     id: 9,
     type: "most",
+    traitBucket: "proactivity",
     prompt: "Which of these approaches feels most natural?",
     options: {
       A: { text: "I look for ways to improve someone's experience", trait: "compassion" },
@@ -106,6 +115,7 @@ const QUESTIONS = [
   {
     id: 10,
     type: "most",
+    traitBucket: "social",
     prompt: "In service environments, what motivates you most?",
     options: {
       A: { text: "Knowing someone feels supported", trait: "compassion" },
@@ -117,6 +127,7 @@ const QUESTIONS = [
   {
     id: 11,
     type: "least",
+    traitBucket: "social",
     prompt: "Which statement feels LEAST natural for you?",
     options: {
       A: { text: "I prefer focusing mainly on assigned responsibilities", trait: "reliability" },
@@ -128,6 +139,7 @@ const QUESTIONS = [
   {
     id: 12,
     type: "most",
+    traitBucket: "social",
     prompt: "When entering unfamiliar environments, which feels most like you?",
     options: {
       A: { text: "I start noticing how people around me are feeling", trait: "compassion" },
@@ -139,6 +151,7 @@ const QUESTIONS = [
   {
     id: 13,
     type: "most",
+    traitBucket: "compassion",
     prompt: "Which statement feels most like your natural style?",
     options: {
       A: { text: "I try to make people feel comfortable quickly", trait: "compassion" },
@@ -150,6 +163,7 @@ const QUESTIONS = [
   {
     id: 14,
     type: "most",
+    traitBucket: "proactivity",
     prompt: "Which of these descriptions fits you best?",
     options: {
       A: { text: "I often pick up on subtle emotional signals", trait: "compassion" },
@@ -161,6 +175,7 @@ const QUESTIONS = [
   {
     id: 15,
     type: "least",
+    traitBucket: "social",
     prompt: "Which statement feels LEAST like you?",
     options: {
       A: { text: "I prefer focusing on tasks rather than interactions", trait: "social" },
@@ -172,6 +187,7 @@ const QUESTIONS = [
   {
     id: 16,
     type: "most",
+    traitBucket: "social",
     prompt: "Which statement feels most natural?",
     options: {
       A: { text: "I enjoy noticing small things that might improve someone's experience", trait: "compassion" },
@@ -183,6 +199,7 @@ const QUESTIONS = [
   {
     id: 17,
     type: "most",
+    traitBucket: "regulation",
     prompt: "Which working style feels most natural to you?",
     options: {
       A: { text: "Making sure people feel supported", trait: "compassion" },
@@ -194,6 +211,7 @@ const QUESTIONS = [
   {
     id: 18,
     type: "most",
+    traitBucket: "compassion",
     prompt: "Which statement best reflects your approach to helping others?",
     options: {
       A: { text: "I try to understand how they are feeling", trait: "compassion" },
@@ -205,6 +223,7 @@ const QUESTIONS = [
   {
     id: 19,
     type: "least",
+    traitBucket: "proactivity",
     prompt: "Which statement feels LEAST like you?",
     options: {
       A: { text: "I usually wait until someone asks before offering help", trait: "proactivity" },
@@ -216,6 +235,7 @@ const QUESTIONS = [
   {
     id: 20,
     type: "most",
+    traitBucket: "compassion",
     prompt: "Which statement feels most natural?",
     options: {
       A: { text: "I tend to notice when someone might need support", trait: "compassion" },
@@ -227,6 +247,7 @@ const QUESTIONS = [
   {
     id: 21,
     type: "most",
+    traitBucket: "proactivity",
     prompt: "Which of these best describes your natural approach?",
     options: {
       A: { text: "Helping people feel supported", trait: "compassion" },
@@ -238,6 +259,7 @@ const QUESTIONS = [
   {
     id: 22,
     type: "most",
+    traitBucket: "reliability",
     prompt: "Which working style feels most like you?",
     options: {
       A: { text: "Paying attention to people's emotional needs", trait: "compassion" },
@@ -249,6 +271,7 @@ const QUESTIONS = [
   {
     id: 23,
     type: "most",
+    traitBucket: "compassion",
     prompt: "Which statement feels most natural?",
     options: {
       A: { text: "I enjoy helping people feel welcome", trait: "compassion" },
@@ -260,12 +283,205 @@ const QUESTIONS = [
   {
     id: 24,
     type: "most",
+    traitBucket: "reliability",
     prompt: "Which statement best describes you?",
     options: {
       A: { text: "I notice when someone might need help", trait: "compassion" },
       B: { text: "I try to make situations easier for others", trait: "proactivity" },
       C: { text: "I stay steady when things become stressful", trait: "regulation" },
       D: { text: "I ensure responsibilities are handled properly", trait: "reliability" },
+    },
+  },
+  {
+    id: 25,
+    type: "most",
+    traitBucket: "compassion",
+    prompt: "Which statement feels most natural when someone seems overwhelmed?",
+    options: {
+      A: { text: "I notice the emotional shift quickly", trait: "compassion" },
+      B: { text: "I focus on what needs to happen next", trait: "reliability" },
+      C: { text: "I try to help before they ask", trait: "proactivity" },
+      D: { text: "I stay calm so I can be useful", trait: "regulation" },
+    },
+  },
+  {
+    id: 26,
+    type: "most",
+    traitBucket: "proactivity",
+    prompt: "Which statement feels most like your service style?",
+    options: {
+      A: { text: "I like to think one step ahead", trait: "proactivity" },
+      B: { text: "I focus on making people feel at ease", trait: "compassion" },
+      C: { text: "I stay composed under pressure", trait: "regulation" },
+      D: { text: "I make sure details are not missed", trait: "reliability" },
+    },
+  },
+  {
+    id: 27,
+    type: "most",
+    traitBucket: "regulation",
+    prompt: "When multiple things need attention at once, what feels most natural?",
+    options: {
+      A: { text: "I keep my tone calm and measured", trait: "regulation" },
+      B: { text: "I look for who needs support first", trait: "compassion" },
+      C: { text: "I prioritize tasks quickly", trait: "reliability" },
+      D: { text: "I move before being asked", trait: "proactivity" },
+    },
+  },
+  {
+    id: 28,
+    type: "most",
+    traitBucket: "social",
+    prompt: "Which statement best fits how you interact in new settings?",
+    options: {
+      A: { text: "I usually break the ice first", trait: "social" },
+      B: { text: "I read the room before I act", trait: "compassion" },
+      C: { text: "I look for practical ways to help", trait: "proactivity" },
+      D: { text: "I try to understand expectations fast", trait: "reliability" },
+    },
+  },
+  {
+    id: 29,
+    type: "most",
+    traitBucket: "reliability",
+    prompt: "Which statement feels most natural when a task is assigned?",
+    options: {
+      A: { text: "I like to make sure it is done correctly", trait: "reliability" },
+      B: { text: "I think about what might be needed next", trait: "proactivity" },
+      C: { text: "I consider how it affects others", trait: "compassion" },
+      D: { text: "I stay steady even if it is urgent", trait: "regulation" },
+    },
+  },
+  {
+    id: 30,
+    type: "most",
+    traitBucket: "compassion",
+    prompt: "Which statement feels most like you when helping others?",
+    options: {
+      A: { text: "I want people to feel supported", trait: "compassion" },
+      B: { text: "I like keeping things moving smoothly", trait: "proactivity" },
+      C: { text: "I stay calm in tense moments", trait: "regulation" },
+      D: { text: "I focus on following through", trait: "reliability" },
+    },
+  },
+  {
+    id: 31,
+    type: "most",
+    traitBucket: "proactivity",
+    prompt: "Which statement best describes how you notice work around you?",
+    options: {
+      A: { text: "I can usually spot what needs attention quickly", trait: "proactivity" },
+      B: { text: "I pick up on emotional cues first", trait: "compassion" },
+      C: { text: "I like clear steps and follow-through", trait: "reliability" },
+      D: { text: "I stay even-keeled when things shift", trait: "regulation" },
+    },
+  },
+  {
+    id: 32,
+    type: "most",
+    traitBucket: "regulation",
+    prompt: "When someone is upset, what feels most natural?",
+    options: {
+      A: { text: "I try to be a calming presence", trait: "regulation" },
+      B: { text: "I think about what action would help", trait: "proactivity" },
+      C: { text: "I focus on making them feel cared for", trait: "compassion" },
+      D: { text: "I make sure the issue gets handled", trait: "reliability" },
+    },
+  },
+  {
+    id: 33,
+    type: "most",
+    traitBucket: "social",
+    prompt: "Which statement feels most like you in a people-facing role?",
+    options: {
+      A: { text: "I enjoy greeting and engaging with others", trait: "social" },
+      B: { text: "I focus on making them feel comfortable", trait: "compassion" },
+      C: { text: "I think ahead about what they may need", trait: "proactivity" },
+      D: { text: "I stay steady even when it gets busy", trait: "regulation" },
+    },
+  },
+  {
+    id: 34,
+    type: "most",
+    traitBucket: "reliability",
+    prompt: "Which statement feels most natural in structured work?",
+    options: {
+      A: { text: "I like knowing responsibilities are covered", trait: "reliability" },
+      B: { text: "I still look for ways to go beyond them", trait: "proactivity" },
+      C: { text: "I think about who may need extra support", trait: "compassion" },
+      D: { text: "I stay calm even when plans change", trait: "regulation" },
+    },
+  },
+  {
+    id: 35,
+    type: "least",
+    traitBucket: "compassion",
+    prompt: "Which statement feels LEAST natural for you?",
+    options: {
+      A: { text: "I usually notice when someone is having a hard moment", trait: "compassion" },
+      B: { text: "I like stepping in before I am asked", trait: "proactivity" },
+      C: { text: "I stay level-headed when people are tense", trait: "regulation" },
+      D: { text: "I like making sure things are done right", trait: "reliability" },
+    },
+  },
+  {
+    id: 36,
+    type: "least",
+    traitBucket: "proactivity",
+    prompt: "Which statement feels LEAST like you?",
+    options: {
+      A: { text: "I naturally think ahead to what comes next", trait: "proactivity" },
+      B: { text: "I care about how others are feeling", trait: "compassion" },
+      C: { text: "I can stay calm under pressure", trait: "regulation" },
+      D: { text: "I pay attention to details", trait: "reliability" },
+    },
+  },
+  {
+    id: 37,
+    type: "most",
+    traitBucket: "compassion",
+    prompt: "Which statement feels most natural in difficult moments?",
+    options: {
+      A: { text: "I focus on helping people feel seen", trait: "compassion" },
+      B: { text: "I focus on staying composed", trait: "regulation" },
+      C: { text: "I focus on what should happen next", trait: "proactivity" },
+      D: { text: "I focus on doing things correctly", trait: "reliability" },
+    },
+  },
+  {
+    id: 38,
+    type: "most",
+    traitBucket: "social",
+    prompt: "Which statement best describes your presence with others?",
+    options: {
+      A: { text: "I help people feel welcome quickly", trait: "social" },
+      B: { text: "I read emotional tone well", trait: "compassion" },
+      C: { text: "I anticipate what may be needed", trait: "proactivity" },
+      D: { text: "I stay dependable and steady", trait: "reliability" },
+    },
+  },
+  {
+    id: 39,
+    type: "most",
+    traitBucket: "regulation",
+    prompt: "Which statement feels most like your work style when stress rises?",
+    options: {
+      A: { text: "I become more focused and calm", trait: "regulation" },
+      B: { text: "I think about who needs help most", trait: "compassion" },
+      C: { text: "I take initiative without waiting", trait: "proactivity" },
+      D: { text: "I make sure nothing is dropped", trait: "reliability" },
+    },
+  },
+  {
+    id: 40,
+    type: "most",
+    traitBucket: "reliability",
+    prompt: "Which statement feels most natural when you are supporting a team?",
+    options: {
+      A: { text: "I make sure commitments are followed through", trait: "reliability" },
+      B: { text: "I look for where help will matter most", trait: "proactivity" },
+      C: { text: "I pay attention to how people are holding up", trait: "compassion" },
+      D: { text: "I keep a calm tone and pace", trait: "regulation" },
     },
   },
 ];
@@ -278,11 +494,43 @@ const TRAIT_WEIGHTS = {
   reliability: 0.1,
 };
 
-function scoreAssessment(answers: Record<number, string>) {
+const QUESTION_PLAN: Record<string, number> = {
+  compassion: 6,
+  proactivity: 6,
+  regulation: 5,
+  social: 4,
+  reliability: 3,
+};
+
+function seededShuffle<T>(arr: T[], seedString: string) {
+  const result = [...arr];
+  let seed = 0;
+  for (let i = 0; i < seedString.length; i += 1) seed = (seed * 31 + seedString.charCodeAt(i)) >>> 0;
+  const random = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+  for (let i = result.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+function buildQuestionSet(seed: string) {
+  const chosen: typeof QUESTIONS = [];
+  Object.entries(QUESTION_PLAN).forEach(([bucket, count]) => {
+    const pool = QUESTIONS.filter((q) => q.traitBucket === bucket);
+    chosen.push(...seededShuffle(pool, `${seed}-${bucket}`).slice(0, count));
+  });
+  return seededShuffle(chosen, `${seed}-final`).slice(0, 24);
+}
+
+function scoreAssessment(questionSet: typeof QUESTIONS, answers: Record<number, string>) {
   const raw = { compassion: 0, proactivity: 0, regulation: 0, social: 0, reliability: 0 };
   const max = { compassion: 0, proactivity: 0, regulation: 0, social: 0, reliability: 0 };
 
-  QUESTIONS.forEach((q) => {
+  questionSet.forEach((q) => {
     Object.values(q.options).forEach((opt) => {
       if (q.type === "most") max[opt.trait as keyof typeof max] += 2;
       if (q.type === "least") max[opt.trait as keyof typeof max] += 1;
@@ -298,9 +546,7 @@ function scoreAssessment(answers: Record<number, string>) {
     Object.keys(raw).map((trait) => {
       const best = max[trait as keyof typeof max] || 1;
       const min =
-        QUESTIONS.filter(
-          (q) => Object.values(q.options).some((o) => o.trait === trait && q.type === "least")
-        ).length * -1;
+        questionSet.filter((q) => Object.values(q.options).some((o) => o.trait === trait && q.type === "least")).length * -1;
       const range = best - min || 1;
       const pct = Math.round(((raw[trait as keyof typeof raw] - min) / range) * 100);
       return [trait, Math.max(0, Math.min(100, pct))];
@@ -316,63 +562,84 @@ function scoreAssessment(answers: Record<number, string>) {
 
 function cardStyle(): React.CSSProperties {
   return {
-    background: "#fff",
-    borderRadius: 20,
-    padding: 20,
-    boxShadow: "0 1px 6px rgba(0,0,0,0.08)",
-    border: "1px solid #e5e7eb",
+    background: "rgba(255,255,255,0.92)",
+    backdropFilter: "blur(10px)",
+    borderRadius: 24,
+    padding: 24,
+    boxShadow: "0 12px 35px rgba(15, 23, 42, 0.18)",
+    border: "1px solid rgba(255,255,255,0.45)",
   };
 }
 
 function inputStyle(): React.CSSProperties {
   return {
     width: "100%",
-    padding: "10px 12px",
-    borderRadius: 12,
+    padding: "12px 14px",
+    borderRadius: 14,
     border: "1px solid #d1d5db",
     fontSize: 14,
     boxSizing: "border-box",
+    background: "rgba(255,255,255,0.98)",
   };
 }
 
-function buttonStyle(disabled = false): React.CSSProperties {
+function buttonStyle(disabled = false, secondary = false): React.CSSProperties {
   return {
     borderRadius: 14,
     padding: "12px 18px",
-    border: "none",
-    background: disabled ? "#9ca3af" : "#111827",
+    border: secondary ? "1px solid rgba(255,255,255,0.35)" : "none",
+    background: disabled ? "#94a3b8" : secondary ? "rgba(255,255,255,0.15)" : "#111827",
     color: "#fff",
     cursor: disabled ? "not-allowed" : "pointer",
-    fontWeight: 600,
+    fontWeight: 700,
+    letterSpacing: 0.2,
   };
 }
 
-export default function Page() {
+function getTokenFromUrl() {
+  if (typeof window === "undefined") return "demo-token";
+  const params = new URLSearchParams(window.location.search);
+  return params.get("token") || "demo-token";
+}
+
+export default function HospitalConciergeAssessmentForm() {
   const [candidate, setCandidate] = useState({ firstName: "", lastName: "", email: "" });
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [started, setStarted] = useState(false);
+  const [error, setError] = useState("");
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [token, setToken] = useState("demo-token");
 
+  useEffect(() => {
+    setToken(getTokenFromUrl());
+  }, []);
+
+  const questionSet = useMemo(() => buildQuestionSet(token), [token]);
+  const currentQuestion = questionSet[currentIndex];
   const answeredCount = useMemo(() => Object.keys(answers).length, [answers]);
-  const progress = Math.round((answeredCount / QUESTIONS.length) * 100);
-  const canSubmit =
-    candidate.firstName.trim() &&
-    candidate.lastName.trim() &&
-    candidate.email.trim() &&
-    answeredCount === QUESTIONS.length;
+  const progress = started ? Math.round(((currentIndex + (submitted ? 1 : 0)) / questionSet.length) * 100) : 0;
+  const canBegin = candidate.firstName.trim() && candidate.lastName.trim() && candidate.email.trim();
+  const hasSelectedCurrent = currentQuestion ? Boolean(answers[currentQuestion.id]) : false;
+  const isLastQuestion = currentIndex === questionSet.length - 1;
 
   const handleAnswer = (questionId: number, optionKey: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: optionKey }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!canSubmit) return;
+  const handleNext = () => {
+    if (!hasSelectedCurrent) return;
+    if (!isLastQuestion) setCurrentIndex((prev) => prev + 1);
+  };
 
+  const handleSubmit = async () => {
+    if (!isLastQuestion || !hasSelectedCurrent) return;
     setSubmitting(true);
+    setError("");
 
     try {
-      const scoring = scoreAssessment(answers);
+      const scoring = scoreAssessment(questionSet, answers);
 
       const response = await fetch("/api/submit-assessment", {
         method: "POST",
@@ -382,7 +649,9 @@ export default function Page() {
         body: JSON.stringify({
           candidate,
           answers,
-          scoring
+          scoring,
+          token,
+          questionIds: questionSet.map((q) => q.id)
         })
       });
 
@@ -391,8 +660,8 @@ export default function Page() {
       }
 
       setSubmitted(true);
-    } catch (error) {
-      alert("There was an error submitting the assessment.");
+    } catch (submissionError) {
+      setError("There was an error submitting the assessment.");
     } finally {
       setSubmitting(false);
     }
@@ -400,13 +669,14 @@ export default function Page() {
 
   if (submitted) {
     return (
-      <div style={{ minHeight: "100vh", padding: 24 }}>
+      <div style={{ minHeight: "100vh", padding: 24, background: "linear-gradient(135deg, #1d4ed8 0%, #7c3aed 52%, #ec4899 100%)" }}>
         <div style={{ maxWidth: 720, margin: "40px auto" }}>
           <div style={{ ...cardStyle(), textAlign: "center" }}>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
               <CheckCircle2 size={48} />
             </div>
-            <h1 style={{ margin: 0, fontSize: 32 }}>Assessment submitted</h1>
+            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: 1.2, color: "#7c3aed", textTransform: "uppercase" }}>OtterBase x Helen</div>
+            <h1 style={{ margin: "10px 0 0", fontSize: 32 }}>Assessment submitted</h1>
             <p style={{ color: "#6b7280", marginTop: 12 }}>
               Thank you for completing the assessment. Your responses have been received.
             </p>
@@ -417,148 +687,122 @@ export default function Page() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", padding: 16 }}>
+    <div style={{ minHeight: "100vh", padding: 16, background: "linear-gradient(135deg, #1d4ed8 0%, #7c3aed 52%, #ec4899 100%)" }}>
       <div style={{ maxWidth: 920, margin: "0 auto", display: "grid", gap: 20 }}>
-        <div style={cardStyle()}>
-          <h1 style={{ margin: 0, fontSize: 34 }}>Hospital Concierge Assessment</h1>
-          <p style={{ color: "#6b7280", marginTop: 8 }}>
-            Please answer each question based on what feels most natural to you. There are no visible results at the end.
-          </p>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-              gap: 14,
-              marginTop: 20,
-            }}
-          >
+        <div style={{ ...cardStyle(), color: "#111827" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
             <div>
-              <label style={{ display: "block", marginBottom: 6, fontSize: 14 }}>First name</label>
-              <input
-                style={inputStyle()}
-                value={candidate.firstName}
-                onChange={(e) => setCandidate({ ...candidate, firstName: e.target.value })}
-              />
+              <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: 1.2, color: "#7c3aed", textTransform: "uppercase" }}>OtterBase x Helen</div>
+              <h1 style={{ margin: "8px 0 0", fontSize: 34 }}>Hospital Concierge Assessment</h1>
+              <p style={{ color: "#6b7280", marginTop: 8 }}>
+                A structured service aptitude assessment for hospitality-focused patient experience roles.
+              </p>
             </div>
-            <div>
-              <label style={{ display: "block", marginBottom: 6, fontSize: 14 }}>Last name</label>
-              <input
-                style={inputStyle()}
-                value={candidate.lastName}
-                onChange={(e) => setCandidate({ ...candidate, lastName: e.target.value })}
-              />
-            </div>
-            <div>
-              <label style={{ display: "block", marginBottom: 6, fontSize: 14 }}>Email</label>
-              <input
-                type="email"
-                style={inputStyle()}
-                value={candidate.email}
-                onChange={(e) => setCandidate({ ...candidate, email: e.target.value })}
-              />
+            <div style={{ minWidth: 160, textAlign: "right" }}>
+              <div style={{ fontSize: 12, color: "#6b7280", textTransform: "uppercase", letterSpacing: 1 }}>Assessment ID</div>
+              <div style={{ fontSize: 14, fontWeight: 700 }}>{token}</div>
             </div>
           </div>
 
-          <div style={{ marginTop: 20 }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: 14,
-                color: "#6b7280",
-                marginBottom: 8,
-              }}
-            >
-              <span>Progress</span>
-              <span>
-                {answeredCount} / {QUESTIONS.length}
-              </span>
-            </div>
-            <div
-              style={{
-                width: "100%",
-                height: 10,
-                background: "#e5e7eb",
-                borderRadius: 999,
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  width: `${progress}%`,
-                  height: "100%",
-                  background: "#111827",
-                }}
-              />
-            </div>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} style={{ display: "grid", gap: 18 }}>
-          {QUESTIONS.map((question) => (
-            <div key={question.id} style={cardStyle()}>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>Question {question.id}</div>
-              <div style={{ marginTop: 8, fontSize: 18 }}>{question.prompt}</div>
-
-              <div style={{ display: "grid", gap: 10, marginTop: 16 }}>
-                {Object.entries(question.options).map(([key, option]) => (
-                  <label
-                    key={key}
-                    style={{
-                      display: "block",
-                      borderRadius: 16,
-                      border: answers[question.id] === key ? "1px solid #111827" : "1px solid #e5e7eb",
-                      padding: 16,
-                      cursor: "pointer",
-                      background: "#fff",
-                    }}
-                  >
-                    <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                      <input
-                        type="radio"
-                        name={`question-${question.id}`}
-                        value={key}
-                        checked={answers[question.id] === key}
-                        onChange={() => handleAnswer(question.id, key)}
-                        style={{ marginTop: 4 }}
-                      />
-                      <div style={{ fontSize: 15 }}>
-                        <strong>{key}.</strong> {option.text}
-                      </div>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
-          ))}
-
-          <div
-            style={{
-              position: "sticky",
-              bottom: 16,
-            }}
-          >
-            <div style={{ ...cardStyle(), padding: 16 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 12,
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                }}
-              >
-                <div style={{ color: "#6b7280", fontSize: 14 }}>
-                  Complete all questions to submit. Results are sent internally and are not shown after submission.
+          {!started ? (
+            <div style={{ marginTop: 24, display: "grid", gap: 18 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
+                <div>
+                  <label style={{ display: "block", marginBottom: 6, fontSize: 14 }}>First name</label>
+                  <input style={inputStyle()} value={candidate.firstName} onChange={(e) => setCandidate({ ...candidate, firstName: e.target.value })} />
                 </div>
-                <button type="submit" disabled={!canSubmit || submitting} style={buttonStyle(!canSubmit || submitting)}>
-                  {submitting ? "Submitting..." : "Submit Assessment"}
+                <div>
+                  <label style={{ display: "block", marginBottom: 6, fontSize: 14 }}>Last name</label>
+                  <input style={inputStyle()} value={candidate.lastName} onChange={(e) => setCandidate({ ...candidate, lastName: e.target.value })} />
+                </div>
+                <div>
+                  <label style={{ display: "block", marginBottom: 6, fontSize: 14 }}>Email</label>
+                  <input type="email" style={inputStyle()} value={candidate.email} onChange={(e) => setCandidate({ ...candidate, email: e.target.value })} />
+                </div>
+              </div>
+
+              <div style={{ background: "rgba(99, 102, 241, 0.08)", borderRadius: 18, padding: 18 }}>
+                <div style={{ fontWeight: 700, marginBottom: 8 }}>Before you begin</div>
+                <div style={{ color: "#4b5563", fontSize: 14, lineHeight: 1.55 }}>
+                  You will answer 24 multiple-choice questions. Each question appears on its own page. Once you move forward, you will not be able to go back.
+                </div>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+                <div style={{ color: "#6b7280", fontSize: 14 }}>Questions are randomized for each candidate link.</div>
+                <button style={buttonStyle(!canBegin)} disabled={!canBegin} onClick={() => setStarted(true)}>
+                  Begin Test
                 </button>
               </div>
             </div>
-          </div>
-        </form>
+          ) : (
+            <>
+              <div style={{ marginTop: 22 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: "#6b7280", marginBottom: 8 }}>
+                  <span>Question {currentIndex + 1} of {questionSet.length}</span>
+                  <span>{answeredCount} answered</span>
+                </div>
+                <div style={{ width: "100%", height: 10, background: "#e5e7eb", borderRadius: 999, overflow: "hidden" }}>
+                  <div style={{ width: `${progress}%`, height: "100%", background: "linear-gradient(90deg, #2563eb 0%, #7c3aed 60%, #ec4899 100%)" }} />
+                </div>
+              </div>
+
+              {currentQuestion ? (
+                <div style={{ marginTop: 22, display: "grid", gap: 18 }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#7c3aed", textTransform: "uppercase", letterSpacing: 1 }}>Current Question</div>
+                    <div style={{ marginTop: 10, fontSize: 28, fontWeight: 700, lineHeight: 1.2 }}>{currentQuestion.prompt}</div>
+                  </div>
+
+                  <div style={{ display: "grid", gap: 12 }}>
+                    {Object.entries(currentQuestion.options).map(([key, option]) => (
+                      <label
+                        key={key}
+                        style={{
+                          display: "block",
+                          borderRadius: 18,
+                          border: answers[currentQuestion.id] === key ? "2px solid #7c3aed" : "1px solid #e5e7eb",
+                          padding: 18,
+                          cursor: "pointer",
+                          background: answers[currentQuestion.id] === key ? "rgba(124,58,237,0.08)" : "#fff",
+                        }}
+                      >
+                        <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                          <input
+                            type="radio"
+                            name={`question-${currentQuestion.id}`}
+                            value={key}
+                            checked={answers[currentQuestion.id] === key}
+                            onChange={() => handleAnswer(currentQuestion.id, key)}
+                            style={{ marginTop: 4 }}
+                          />
+                          <div style={{ fontSize: 16, lineHeight: 1.45 }}>
+                            <strong>{key}.</strong> {option.text}
+                          </div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+
+                  {error ? <div style={{ color: "#dc2626", fontSize: 14 }}>{error}</div> : null}
+
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+                    <div style={{ color: "#6b7280", fontSize: 14 }}>There is no back button on purpose to preserve assessment integrity.</div>
+                    {isLastQuestion ? (
+                      <button style={buttonStyle(!hasSelectedCurrent || submitting)} disabled={!hasSelectedCurrent || submitting} onClick={handleSubmit}>
+                        {submitting ? "Submitting..." : "Submit Assessment"}
+                      </button>
+                    ) : (
+                      <button style={buttonStyle(!hasSelectedCurrent)} disabled={!hasSelectedCurrent} onClick={handleNext}>
+                        Next Question
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
