@@ -365,23 +365,37 @@ export default function Page() {
     setAnswers((prev) => ({ ...prev, [questionId]: optionKey }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
+
     setSubmitting(true);
 
-    const scoring = scoreAssessment(answers);
-    console.log("Demo submission payload:", {
-      submittedAt: new Date().toISOString(),
-      candidate,
-      answers,
-      scoring,
-    });
+    try {
+      const scoring = scoreAssessment(answers);
 
-    setTimeout(() => {
-      setSubmitting(false);
+      const response = await fetch("/api/submit-assessment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          candidate,
+          answers,
+          scoring
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Submission failed");
+      }
+
       setSubmitted(true);
-    }, 700);
+    } catch (error) {
+      alert("There was an error submitting the assessment.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {
