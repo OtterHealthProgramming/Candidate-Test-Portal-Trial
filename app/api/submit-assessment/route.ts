@@ -9,15 +9,36 @@ const supabase = createClient(
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { candidate, answers, scoring } = body;
+    const { candidate, answers, scoring, token, questionIds } = body;
 
-    const { data: candidateRow, error: candidateError } = await supabase
+    if (!token) {
+      return NextResponse.json(
+        { error: "Missing token" },
+        { status: 400 }
+      );
+    }
+
+    const { data: existingCandidate, error: fetchError } = await supabase
       .from("candidates")
-      .insert({
+      .select("*")
+      .eq("token", token)
+      .single();
+
+    if (fetchError || !existingCandidate) {
+      return NextResponse.json(
+        { error: "Candidate invite not found" },
+        { status: 404 }
+      );
+    }
+
+    const { error: updateError } = await supabase
+      .from("candidates")
+      .update({
         first_name: candidate.firstName,
         last_name: candidate.lastName,
         email: candidate.email,
         status: "completed",
+        submitted_at: new Date().toISOString(),
         overall_fit: scoring.overall,
         compassion: scoring.normalized.compassion,
         proactivity: scoring.normalized.proactivity,
@@ -25,26 +46,41 @@ export async function POST(req: Request) {
         social: scoring.normalized.social,
         reliability: scoring.normalized.reliability,
       })
-      .select()
-      .single();
+      .eq("id", existingCandidate.id);
 
-    if (candidateError) {
-      return NextResponse.json({ error: candidateError.message }, { status: 500 });
+    if (updateError) {
+      return NextResponse.json(
+        { error: updateError.message },
+        { status: 500 }
+      );
     }
 
     const { error: assessmentError } = await supabase
       .from("assessments")
       .insert({
-        candidate_id: candidateRow.id,
-        answers_json: answers,
+        candidate_id: existingCandidate.id,
+        answers_json: {
+          answers,
+          questionIds,
+          token
+        }
       });
 
     if (assessmentError) {
-      return NextResponse.json({ error: assessmentError.message }, { status: 500 });
+      return NextResponse.json(
+        { error: assessmentError.message },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({ success: true, candidateId: candidateRow.id });
+    return NextResponse.json({
+      success: true,
+      candidateId: existingCandidate.id
+    });
   } catch (error) {
-    return NextResponse.json({ error: "Submission failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Submission failed" },
+      { status: 500 }
+    );
   }
 }
