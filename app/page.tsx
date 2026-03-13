@@ -505,24 +505,31 @@ const QUESTION_PLAN: Record<string, number> = {
 function seededShuffle<T>(arr: T[], seedString: string) {
   const result = [...arr];
   let seed = 0;
-  for (let i = 0; i < seedString.length; i += 1) seed = (seed * 31 + seedString.charCodeAt(i)) >>> 0;
+  for (let i = 0; i < seedString.length; i += 1) {
+    seed = (seed * 31 + seedString.charCodeAt(i)) >>> 0;
+  }
+
   const random = () => {
     seed = (seed * 1664525 + 1013904223) >>> 0;
     return seed / 4294967296;
   };
+
   for (let i = result.length - 1; i > 0; i -= 1) {
     const j = Math.floor(random() * (i + 1));
     [result[i], result[j]] = [result[j], result[i]];
   }
+
   return result;
 }
 
 function buildQuestionSet(seed: string) {
   const chosen: typeof QUESTIONS = [];
+
   Object.entries(QUESTION_PLAN).forEach(([bucket, count]) => {
     const pool = QUESTIONS.filter((q) => q.traitBucket === bucket);
     chosen.push(...seededShuffle(pool, `${seed}-${bucket}`).slice(0, count));
   });
+
   return seededShuffle(chosen, `${seed}-final`).slice(0, 24);
 }
 
@@ -538,6 +545,7 @@ function scoreAssessment(questionSet: typeof QUESTIONS, answers: Record<number, 
 
     const selected = answers[q.id];
     if (!selected) return;
+
     const trait = q.options[selected as keyof typeof q.options].trait as keyof typeof raw;
     raw[trait] += q.type === "least" ? -1 : 2;
   });
@@ -546,7 +554,9 @@ function scoreAssessment(questionSet: typeof QUESTIONS, answers: Record<number, 
     Object.keys(raw).map((trait) => {
       const best = max[trait as keyof typeof max] || 1;
       const min =
-        questionSet.filter((q) => Object.values(q.options).some((o) => o.trait === trait && q.type === "least")).length * -1;
+        questionSet.filter(
+          (q) => Object.values(q.options).some((o) => o.trait === trait && q.type === "least")
+        ).length * -1;
       const range = best - min || 1;
       const pct = Math.round(((raw[trait as keyof typeof raw] - min) / range) * 100);
       return [trait, Math.max(0, Math.min(100, pct))];
@@ -562,12 +572,11 @@ function scoreAssessment(questionSet: typeof QUESTIONS, answers: Record<number, 
 
 function cardStyle(): React.CSSProperties {
   return {
-    background: "rgba(255,255,255,0.92)",
-    backdropFilter: "blur(10px)",
-    borderRadius: 24,
+    background: "#ffffff",
+    borderRadius: 20,
     padding: 24,
-    boxShadow: "0 12px 35px rgba(15, 23, 42, 0.18)",
-    border: "1px solid rgba(255,255,255,0.45)",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
+    border: "1px solid rgba(0,0,0,0.05)",
   };
 }
 
@@ -579,7 +588,7 @@ function inputStyle(): React.CSSProperties {
     border: "1px solid #d1d5db",
     fontSize: 14,
     boxSizing: "border-box",
-    background: "rgba(255,255,255,0.98)",
+    background: "#ffffff",
   };
 }
 
@@ -587,9 +596,9 @@ function buttonStyle(disabled = false, secondary = false): React.CSSProperties {
   return {
     borderRadius: 14,
     padding: "12px 18px",
-    border: secondary ? "1px solid rgba(255,255,255,0.35)" : "none",
-    background: disabled ? "#94a3b8" : secondary ? "rgba(255,255,255,0.15)" : "#111827",
-    color: "#fff",
+    border: secondary ? "1px solid rgba(17,24,39,0.12)" : "none",
+    background: disabled ? "#94a3b8" : secondary ? "#ffffff" : "#111827",
+    color: secondary ? "#111827" : "#ffffff",
     cursor: disabled ? "not-allowed" : "pointer",
     fontWeight: 700,
     letterSpacing: 0.2,
@@ -600,6 +609,22 @@ function getTokenFromUrl() {
   if (typeof window === "undefined") return "demo-token";
   const params = new URLSearchParams(window.location.search);
   return params.get("token") || "demo-token";
+}
+
+async function markAssessmentStarted(token: string) {
+  if (!token || token === "demo-token") return;
+
+  try {
+    await fetch("/api/assessment-started", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ token }),
+    });
+  } catch (error) {
+    console.error("Failed to mark assessment as started");
+  }
 }
 
 export default function HospitalConciergeAssessmentForm() {
@@ -619,8 +644,13 @@ export default function HospitalConciergeAssessmentForm() {
   const questionSet = useMemo(() => buildQuestionSet(token), [token]);
   const currentQuestion = questionSet[currentIndex];
   const answeredCount = useMemo(() => Object.keys(answers).length, [answers]);
-  const progress = started ? Math.round(((currentIndex + (submitted ? 1 : 0)) / questionSet.length) * 100) : 0;
-  const canBegin = candidate.firstName.trim() && candidate.lastName.trim() && candidate.email.trim();
+  const progress = started
+    ? Math.round(((currentIndex + (submitted ? 1 : 0)) / questionSet.length) * 100)
+    : 0;
+  const canBegin =
+    candidate.firstName.trim() &&
+    candidate.lastName.trim() &&
+    candidate.email.trim();
   const hasSelectedCurrent = currentQuestion ? Boolean(answers[currentQuestion.id]) : false;
   const isLastQuestion = currentIndex === questionSet.length - 1;
 
@@ -644,15 +674,15 @@ export default function HospitalConciergeAssessmentForm() {
       const response = await fetch("/api/submit-assessment", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           candidate,
           answers,
           scoring,
           token,
-          questionIds: questionSet.map((q) => q.id)
-        })
+          questionIds: questionSet.map((q) => q.id),
+        }),
       });
 
       if (!response.ok) {
@@ -669,13 +699,23 @@ export default function HospitalConciergeAssessmentForm() {
 
   if (submitted) {
     return (
-      <div style={{ minHeight: "100vh", padding: 24, background: "linear-gradient(135deg, #1d4ed8 0%, #7c3aed 52%, #ec4899 100%)" }}>
+      <div style={{ minHeight: "100vh", padding: 24, background: "#ffffff" }}>
         <div style={{ maxWidth: 720, margin: "40px auto" }}>
           <div style={{ ...cardStyle(), textAlign: "center" }}>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
               <CheckCircle2 size={48} />
             </div>
-            <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: 1.2, color: "#7c3aed", textTransform: "uppercase" }}>OtterBase x Helen</div>
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                letterSpacing: 1.2,
+                color: "#7c3aed",
+                textTransform: "uppercase",
+              }}
+            >
+              OtterBase x Helen
+            </div>
             <h1 style={{ margin: "10px 0 0", fontSize: 32 }}>Assessment submitted</h1>
             <p style={{ color: "#6b7280", marginTop: 12 }}>
               Thank you for completing the assessment. Your responses have been received.
@@ -687,50 +727,127 @@ export default function HospitalConciergeAssessmentForm() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", padding: 16, background: "linear-gradient(135deg, #1d4ed8 0%, #7c3aed 52%, #ec4899 100%)" }}>
+    <div style={{ minHeight: "100vh", padding: 16, background: "#ffffff" }}>
       <div style={{ maxWidth: 920, margin: "0 auto", display: "grid", gap: 20 }}>
         <div style={{ ...cardStyle(), color: "#111827" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 12,
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: 1.2, color: "#7c3aed", textTransform: "uppercase" }}>OtterBase x Helen</div>
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  letterSpacing: 1.2,
+                  color: "#7c3aed",
+                  textTransform: "uppercase",
+                }}
+              >
+                OtterBase x Helen
+              </div>
               <h1 style={{ margin: "8px 0 0", fontSize: 34 }}>Hospital Concierge Assessment</h1>
               <p style={{ color: "#6b7280", marginTop: 8 }}>
-                A structured service aptitude assessment for hospitality-focused patient experience roles.
+                A structured service aptitude assessment for hospitality-focused patient experience
+                roles.
               </p>
             </div>
             <div style={{ minWidth: 160, textAlign: "right" }}>
-              <div style={{ fontSize: 12, color: "#6b7280", textTransform: "uppercase", letterSpacing: 1 }}>Assessment ID</div>
+              <div
+                style={{
+                  fontSize: 12,
+                  color: "#6b7280",
+                  textTransform: "uppercase",
+                  letterSpacing: 1,
+                }}
+              >
+                Assessment ID
+              </div>
               <div style={{ fontSize: 14, fontWeight: 700 }}>{token}</div>
             </div>
           </div>
 
           {!started ? (
             <div style={{ marginTop: 24, display: "grid", gap: 18 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                  gap: 14,
+                }}
+              >
                 <div>
-                  <label style={{ display: "block", marginBottom: 6, fontSize: 14 }}>First name</label>
-                  <input style={inputStyle()} value={candidate.firstName} onChange={(e) => setCandidate({ ...candidate, firstName: e.target.value })} />
+                  <label style={{ display: "block", marginBottom: 6, fontSize: 14 }}>
+                    First name
+                  </label>
+                  <input
+                    style={inputStyle()}
+                    value={candidate.firstName}
+                    onChange={(e) => setCandidate({ ...candidate, firstName: e.target.value })}
+                  />
                 </div>
                 <div>
-                  <label style={{ display: "block", marginBottom: 6, fontSize: 14 }}>Last name</label>
-                  <input style={inputStyle()} value={candidate.lastName} onChange={(e) => setCandidate({ ...candidate, lastName: e.target.value })} />
+                  <label style={{ display: "block", marginBottom: 6, fontSize: 14 }}>
+                    Last name
+                  </label>
+                  <input
+                    style={inputStyle()}
+                    value={candidate.lastName}
+                    onChange={(e) => setCandidate({ ...candidate, lastName: e.target.value })}
+                  />
                 </div>
                 <div>
-                  <label style={{ display: "block", marginBottom: 6, fontSize: 14 }}>Email</label>
-                  <input type="email" style={inputStyle()} value={candidate.email} onChange={(e) => setCandidate({ ...candidate, email: e.target.value })} />
+                  <label style={{ display: "block", marginBottom: 6, fontSize: 14 }}>
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    style={inputStyle()}
+                    value={candidate.email}
+                    onChange={(e) => setCandidate({ ...candidate, email: e.target.value })}
+                  />
                 </div>
               </div>
 
-              <div style={{ background: "rgba(99, 102, 241, 0.08)", borderRadius: 18, padding: 18 }}>
+              <div
+                style={{
+                  background: "rgba(17,24,39,0.04)",
+                  borderRadius: 18,
+                  padding: 18,
+                }}
+              >
                 <div style={{ fontWeight: 700, marginBottom: 8 }}>Before you begin</div>
                 <div style={{ color: "#4b5563", fontSize: 14, lineHeight: 1.55 }}>
-                  You will answer 24 multiple-choice questions. Each question appears on its own page. Once you move forward, you will not be able to go back.
+                  You will answer 24 multiple-choice questions. Each question appears on its own
+                  page. Once you move forward, you will not be able to go back.
                 </div>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-                <div style={{ color: "#6b7280", fontSize: 14 }}>Questions are randomized for each candidate link.</div>
-                <button style={buttonStyle(!canBegin)} disabled={!canBegin} onClick={() => setStarted(true)}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div style={{ color: "#6b7280", fontSize: 14 }}>
+                  Questions are randomized for each candidate link.
+                </div>
+                <button
+                  style={buttonStyle(!canBegin)}
+                  disabled={!canBegin}
+                  onClick={async () => {
+                    await markAssessmentStarted(token);
+                    setStarted(true);
+                  }}
+                >
                   Begin Test
                 </button>
               </div>
@@ -738,20 +855,63 @@ export default function HospitalConciergeAssessmentForm() {
           ) : (
             <>
               <div style={{ marginTop: 22 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: "#6b7280", marginBottom: 8 }}>
-                  <span>Question {currentIndex + 1} of {questionSet.length}</span>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: 14,
+                    color: "#6b7280",
+                    marginBottom: 8,
+                  }}
+                >
+                  <span>
+                    Question {currentIndex + 1} of {questionSet.length}
+                  </span>
                   <span>{answeredCount} answered</span>
                 </div>
-                <div style={{ width: "100%", height: 10, background: "#e5e7eb", borderRadius: 999, overflow: "hidden" }}>
-                  <div style={{ width: `${progress}%`, height: "100%", background: "linear-gradient(90deg, #2563eb 0%, #7c3aed 60%, #ec4899 100%)" }} />
+                <div
+                  style={{
+                    width: "100%",
+                    height: 12,
+                    background: "#e5e7eb",
+                    borderRadius: 999,
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${progress}%`,
+                      height: "100%",
+                      background: "#7c3aed",
+                    }}
+                  />
                 </div>
               </div>
 
               {currentQuestion ? (
                 <div style={{ marginTop: 22, display: "grid", gap: 18 }}>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "#7c3aed", textTransform: "uppercase", letterSpacing: 1 }}>Current Question</div>
-                    <div style={{ marginTop: 10, fontSize: 28, fontWeight: 700, lineHeight: 1.2 }}>{currentQuestion.prompt}</div>
+                    <div
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: "#7c3aed",
+                        textTransform: "uppercase",
+                        letterSpacing: 1,
+                      }}
+                    >
+                      Current Question
+                    </div>
+                    <div
+                      style={{
+                        marginTop: 10,
+                        fontSize: 28,
+                        fontWeight: 700,
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {currentQuestion.prompt}
+                    </div>
                   </div>
 
                   <div style={{ display: "grid", gap: 12 }}>
@@ -761,10 +921,16 @@ export default function HospitalConciergeAssessmentForm() {
                         style={{
                           display: "block",
                           borderRadius: 18,
-                          border: answers[currentQuestion.id] === key ? "2px solid #7c3aed" : "1px solid #e5e7eb",
+                          border:
+                            answers[currentQuestion.id] === key
+                              ? "2px solid #7c3aed"
+                              : "1px solid #e5e7eb",
                           padding: 18,
                           cursor: "pointer",
-                          background: answers[currentQuestion.id] === key ? "rgba(124,58,237,0.08)" : "#fff",
+                          background:
+                            answers[currentQuestion.id] === key
+                              ? "rgba(124,58,237,0.08)"
+                              : "#fff",
                         }}
                       >
                         <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
@@ -786,14 +952,32 @@ export default function HospitalConciergeAssessmentForm() {
 
                   {error ? <div style={{ color: "#dc2626", fontSize: 14 }}>{error}</div> : null}
 
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-                    <div style={{ color: "#6b7280", fontSize: 14 }}>There is no back button on purpose to preserve assessment integrity.</div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: 12,
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <div style={{ color: "#6b7280", fontSize: 14 }}>
+                      There is no back button on purpose to preserve assessment integrity.
+                    </div>
                     {isLastQuestion ? (
-                      <button style={buttonStyle(!hasSelectedCurrent || submitting)} disabled={!hasSelectedCurrent || submitting} onClick={handleSubmit}>
+                      <button
+                        style={buttonStyle(!hasSelectedCurrent || submitting)}
+                        disabled={!hasSelectedCurrent || submitting}
+                        onClick={handleSubmit}
+                      >
                         {submitting ? "Submitting..." : "Submit Assessment"}
                       </button>
                     ) : (
-                      <button style={buttonStyle(!hasSelectedCurrent)} disabled={!hasSelectedCurrent} onClick={handleNext}>
+                      <button
+                        style={buttonStyle(!hasSelectedCurrent)}
+                        disabled={!hasSelectedCurrent}
+                        onClick={handleNext}
+                      >
                         Next Question
                       </button>
                     )}
